@@ -1,0 +1,4 @@
+ctypesgen
+uvicorn
+tartiflette-starlette
+aiokafka
