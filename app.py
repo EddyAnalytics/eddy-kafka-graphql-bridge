@@ -61,7 +61,7 @@ async def on_kafka(parent, args, context, info):
 
 
 app = Starlette()
-app.add_middleware(CORSMiddleware, allow_origins=['*'])
+app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'])
 graphql = TartifletteApp(
     sdl=sdl,
     subscriptions=True,
