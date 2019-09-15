@@ -4,7 +4,9 @@ import logging
 import asyncio
 from aiokafka import AIOKafkaConsumer
 from tartiflette import Subscription, Scalar
-from tartiflette_starlette import TartifletteApp, GraphiQL
+from tartiflette_starlette import TartifletteApp, GraphiQL, mount, Subscriptions
+from starlette.applications import Starlette
+from starlette.middleware.cors import CORSMiddleware
 
 
 # load config from env variables
@@ -58,7 +60,9 @@ async def on_kafka(parent, args, context, info):
         await consumer.stop()
 
 
-app = TartifletteApp(
+app = Starlette()
+app.add_middleware(CORSMiddleware, allow_origins=['*'])
+graphql = TartifletteApp(
     sdl=sdl,
     subscriptions=True,
     graphiql=GraphiQL(
@@ -69,3 +73,5 @@ app = TartifletteApp(
         """
     ),
 )
+
+mount.starlette(app, "/", graphql)
