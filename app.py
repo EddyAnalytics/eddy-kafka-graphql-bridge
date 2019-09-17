@@ -1,4 +1,3 @@
-import os
 import json
 import logging
 import asyncio
@@ -16,16 +15,7 @@ from starlette_prometheus import metrics, PrometheusMiddleware
 from starlette.middleware.authentication import AuthenticationMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from graphql import graphql_app
-
-
-# load config from env variables
-BOOTSTRAP_SERVERS = os.environ.get("BOOTSTRAP_SERVER", "kafka:9092")
-SENTRY_DSN = os.environ.get("SENTRY_DSN", False)
-BEHIND_PROXY = os.environ.get("BEHIND_PROXY", False)
-METRICS = os.environ.get("METRICS", False)
-JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
-JWT_KEY = os.environ.get("JWT_KEY", "sekrit")
-DEBUG = os.environ.get("DEBUG", False) == "True"
+from config import *
 
 
 # instantiate the main webapp
@@ -34,7 +24,7 @@ app = Starlette(debug=DEBUG)
 
 # enable permissive CORS
 # https://www.starlette.io/middleware/#corsmiddleware
-app.add_middleware(CORSMiddleware, allow_origins=['*'])
+app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=['*'], allow_headers=['*'])
 
 
 # enable gzip for responses over 500 bytes
@@ -75,11 +65,12 @@ async def http_exception(request, exc):
     return JSONResponse({"error": exc.detail, "success": False}, status_code=exc.status_code)
 
 
-# dummy index route
-@app.route('/')
-@requires('authenticated')
-async def index(request):
-    return JSONResponse({'success': True})
+# example authenticated route
+# @app.route('/example')
+# @requires('authenticated')
+# async def index(request):
+#    return JSONResponse({'success': True})
 
 
 mount.starlette(app, "/", graphql_app)
+

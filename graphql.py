@@ -3,6 +3,8 @@ from aiokafka import AIOKafkaConsumer
 from tartiflette import Subscription, Scalar
 from tartiflette_starlette import TartifletteApp, GraphiQL, Subscriptions
 from util import debezium_deserializer
+from config import BOOTSTRAP_SERVERS
+
 
 # define the graphql sdl
 sdl = """
