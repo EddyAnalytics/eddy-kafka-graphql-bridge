@@ -18,3 +18,23 @@ Or connect using a GUI, credentials are in the docker-compose.yml file
 
 # Shut down the cluster
 docker-compose down
+
+# To improve performance
+https://www.starlette.io/#performance
+
+# Configure JWT
+## symmetric
+Make sure JWT_KEY is set to the key you want and JWT_ALGORITHM should be set to 'HS256' which is the default
+
+## assymetric
+generate an RSA key pair:
+```
+# generate the private key
+openssl genrsa -out private.pem 4096
+# obtain the public key in pem format
+openssl rsa -pubout -in private.pem -out public.pem
+# obtain the public key in ssh format
+ssh-keygen -f public.pem -i -mPKCS8 > public.ssh
+```
+
+Set `JWT_ALGORITHM` to `RS256` and set `JWT_KEY` to the contents of public.ssh

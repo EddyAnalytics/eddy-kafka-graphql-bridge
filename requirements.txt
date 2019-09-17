@@ -2,3 +2,7 @@ ctypesgen
 uvicorn
 tartiflette-starlette
 aiokafka
+sentry-asgi
+starlette-prometheus
+https://github.com/mauritsvdvijgh/starlette-jwt/archive/master.zip
+pyjwt[crypto]
