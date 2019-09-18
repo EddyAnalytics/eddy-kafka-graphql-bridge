@@ -9,6 +9,6 @@ METRICS = os.environ.get("METRICS", False)
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 JWT_KEY = os.environ.get("JWT_KEY", "sekrit")
 JWT_PREFIX = os.environ.get("JWT_PREFIX", "Bearer")
-JWT_USER_FIELD = os.environ.get("JWT_USERNAME_FIELD", "username")
+JWT_USER_FIELD = os.environ.get("JWT_USER_FIELD", "username")
 DEBUG = os.environ.get("DEBUG", False) == "True"
 

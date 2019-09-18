@@ -56,7 +56,7 @@ if METRICS:
 # https://github.com/amitripshtos/starlette-jwt
 def on_auth_error(request, exc):
     return JSONResponse({"error": str(exc), "success": False}, status_code=401)
-app.add_middleware(AuthenticationMiddleware, on_error=on_auth_error, backend=JWTAuthenticationBackend(secret_key=JWT_KEY, algorithm=JWT_ALGORITHM, prefix=JWT_PREFIX, username=JWT_USER_FIELD))
+app.add_middleware(AuthenticationMiddleware, on_error=on_auth_error, backend=JWTAuthenticationBackend(secret_key=JWT_KEY, algorithm=JWT_ALGORITHM, prefix=JWT_PREFIX, username_field=JWT_USER_FIELD))
 
 
 # Add a generic exception handler
@@ -66,10 +66,10 @@ async def http_exception(request, exc):
 
 
 # example authenticated route
-# @app.route('/example')
-# @requires('authenticated')
-# async def index(request):
-#    return JSONResponse({'success': True})
+@app.route('/example')
+@requires('authenticated')
+async def example(request):
+   return JSONResponse({'success': True})
 
 
 mount.starlette(app, "/", graphql_app)
