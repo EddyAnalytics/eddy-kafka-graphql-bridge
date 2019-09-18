@@ -56,7 +56,7 @@ if METRICS:
 # https://github.com/amitripshtos/starlette-jwt
 def on_auth_error(request, exc):
     return JSONResponse({"error": str(exc), "success": False}, status_code=401)
-app.add_middleware(AuthenticationMiddleware, on_error=on_auth_error, backend=JWTAuthenticationBackend(secret_key=JWT_KEY, algorithm=JWT_ALGORITHM, prefix='JWT'))
+app.add_middleware(AuthenticationMiddleware, on_error=on_auth_error, backend=JWTAuthenticationBackend(secret_key=JWT_KEY, algorithm=JWT_ALGORITHM, prefix=JWT_PREFIX, username=JWT_USER_FIELD))
 
 
 # Add a generic exception handler
