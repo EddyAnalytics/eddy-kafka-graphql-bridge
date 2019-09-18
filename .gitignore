@@ -3,3 +3,6 @@ __pycache__/
 *.py[cod]
 
 .env
+public.pem
+private.pem
+public.ssh
