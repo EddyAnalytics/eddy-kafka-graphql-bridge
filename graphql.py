@@ -16,6 +16,7 @@ type Query {
 
 type Subscription {
   kafka(topic: String): JSON
+  topics: JSON
 }
 """
 
@@ -45,11 +46,25 @@ async def on_kafka(parent, args, context, info):
         value_deserializer=debezium_deserializer
     )
     await consumer.start()
-    try:
-        async for msg in consumer:
-            yield msg.value
-    finally:
-        await consumer.stop()
+    async for msg in consumer:
+        yield msg.value
+
+
+@Subscription("Subscription.topics")
+async def on_topics(parent, args, context, info):
+    consumer = AIOKafkaConsumer(
+        bootstrap_servers=BOOTSTRAP_SERVERS,
+        loop=asyncio.get_running_loop(),
+        value_deserializer=debezium_deserializer
+    )
+    await consumer.start()
+    topics = []
+    while True:
+        new_topics = [topic for topic in await consumer.topics()]
+        if topics != new_topics:
+            topics = new_topics
+            yield topics
+        await asyncio.sleep(10)
 
 
 graphql_app = TartifletteApp(
@@ -58,7 +73,7 @@ graphql_app = TartifletteApp(
     graphiql=GraphiQL(
         default_query="""
         subscription {
-            kafka(topic: "mysql1.inventory.customers")
+            kafka(topic: "mysql1.inventory.customers"),
         }
         """
     ),
