@@ -15,7 +15,7 @@ type Query {
 }
 
 type Subscription {
-  kafka(topic: String): JSON
+  kafka(topics: [String]): JSON
   topics: JSON
 }
 """
@@ -40,14 +40,17 @@ class ScalarJSON:
 @Subscription("Subscription.kafka")
 async def on_kafka(parent, args, context, info):
     consumer = AIOKafkaConsumer(
-        args['topic'],
+        *args['topics'],
         bootstrap_servers=BOOTSTRAP_SERVERS,
         loop=asyncio.get_running_loop(),
         value_deserializer=debezium_deserializer
     )
     await consumer.start()
-    async for msg in consumer:
-        yield msg.value
+    try:
+        async for msg in consumer:
+            yield msg.value
+    finally:
+        await consumer.stop()
 
 
 @Subscription("Subscription.topics")
@@ -73,7 +76,7 @@ graphql_app = TartifletteApp(
     graphiql=GraphiQL(
         default_query="""
         subscription {
-            kafka(topic: "mysql1.inventory.customers"),
+            kafka(topics: ["mysql1.inventory.customers"]),
         }
         """
     ),
