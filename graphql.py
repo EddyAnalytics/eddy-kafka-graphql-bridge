@@ -4,7 +4,7 @@ from aiokafka import AIOKafkaConsumer
 from tartiflette import Subscription, Scalar
 from tartiflette_starlette import TartifletteApp, GraphiQL, Subscriptions
 from util import debezium_deserializer
-from config import BOOTSTRAP_SERVERS
+import config
 
 
 # define the graphql sdl
@@ -42,7 +42,7 @@ class ScalarJSON:
 async def on_kafka(parent, args, context, info):
     consumer = AIOKafkaConsumer(
         *args['topics'],
-        bootstrap_servers=BOOTSTRAP_SERVERS,
+        bootstrap_servers=config.BOOTSTRAP_SERVERS,
         loop=asyncio.get_running_loop(),
         value_deserializer=debezium_deserializer
     )
@@ -57,7 +57,7 @@ async def on_kafka(parent, args, context, info):
 @Subscription("Subscription.topics")
 async def on_topics(parent, args, context, info):
     consumer = AIOKafkaConsumer(
-        bootstrap_servers=BOOTSTRAP_SERVERS,
+        bootstrap_servers=config.BOOTSTRAP_SERVERS,
         loop=asyncio.get_running_loop(),
         value_deserializer=debezium_deserializer
     )
@@ -80,5 +80,5 @@ graphql_app = TartifletteApp(
             kafka(topics: ["mysql1.inventory.customers"]),
         }
         """
-    ),
+     ) if config.DEBUG else None,
 )
