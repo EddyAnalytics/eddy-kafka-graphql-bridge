@@ -1,7 +1,7 @@
 #change ad
 import asyncio
 from aiokafka import AIOKafkaConsumer
-from tartiflette import Subscription, Scalar
+from tartiflette import Subscription, Scalar, Resolver
 from tartiflette_starlette import TartifletteApp, GraphiQL, Subscriptions
 from util import debezium_deserializer
 import config
@@ -13,12 +13,14 @@ scalar JSON
 
 type Query {
   _: Boolean
+  sample(topic: String): JSON
 }
 
 type Subscription {
   kafka(topics: [String]): JSON
   topics: JSON
 }
+
 """
 
 
@@ -35,6 +37,25 @@ class ScalarJSON:
         if isinstance(ast, StringValueNode):
             return json.loads(ast)
         return "UNDEFINED_VALUE"
+
+
+@Resolver("Query.sample")
+async def sample(parent, args, context, info):
+    topic = args["topic"]
+    consumer = AIOKafkaConsumer(
+	topic,
+        bootstrap_servers=config.BOOTSTRAP_SERVERS,
+        loop=asyncio.get_running_loop(),
+        value_deserializer=debezium_deserializer,
+        auto_offset_reset='earliest'
+    )
+    await consumer.start()
+    sample = await consumer.getmany(timeout_ms=100, max_records=1)
+    await consumer.stop()
+
+    if sample:
+        return list(sample.values())[0][0].value
+    return {}
 
 
 # define a graphql subscription allowing one to subscribe to any kafka topic
