@@ -113,7 +113,6 @@ async def on_sample(parent, args, context, info):
                     sample = await consumer.getone()
                     yield str(sample)
             await asyncio.sleep(args.get("rate", 1)/1)
-        yield str(e)
     finally:
         await consumer.stop()
 
