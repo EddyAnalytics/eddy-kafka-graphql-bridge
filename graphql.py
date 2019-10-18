@@ -1,4 +1,3 @@
-#change ad
 import asyncio
 from aiokafka import AIOKafkaConsumer
 from tartiflette import Subscription, Scalar, Resolver
@@ -18,6 +17,7 @@ type Query {
 
 type Subscription {
   kafka(topics: [String]): JSON
+  sample(topic: String!, rate: Int): JSON
   topics: JSON
 }
 
@@ -91,6 +91,31 @@ async def on_topics(parent, args, context, info):
             yield topics
         await asyncio.sleep(10)
 
+
+@Subscription("Subscription.sample")
+async def on_sample(parent, args, context, info):
+    topic = args["topic"]
+    consumer = AIOKafkaConsumer(
+        topic,
+        group_id="kafka-graphql-bridge",
+        bootstrap_servers=config.BOOTSTRAP_SERVERS,
+        loop=asyncio.get_running_loop(),
+        value_deserializer=debezium_deserializer
+    )
+    await consumer.start()
+    try:
+        partitions = consumer.assignment()
+        while True:
+            end_offsets = await consumer.end_offsets(partitions)
+            for partition, offset in end_offsets.items():
+                if offset:
+                    consumer.seek(partition, max(0, offset-1))
+                    sample = await consumer.getone()
+                    yield str(sample)
+            await asyncio.sleep(args.get("rate", 1)/1)
+        yield str(e)
+    finally:
+        await consumer.stop()
 
 graphql_app = TartifletteApp(
     sdl=sdl,
