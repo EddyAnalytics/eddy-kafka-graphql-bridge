@@ -4,6 +4,7 @@ from tartiflette import Subscription, Scalar, Resolver
 from tartiflette_starlette import TartifletteApp, GraphiQL, Subscriptions
 from util import debezium_deserializer
 import config
+import time
 
 
 # define the graphql sdl
@@ -15,8 +16,8 @@ type Query {
 }
 
 type Subscription {
-  kafka(topics: [String]): JSON
-  sample(topic: String!, rate: Int): JSON
+  kafka(topics: [String], from: Int): JSON
+  sample(topic: String!, rate: Float): JSON
   topics: JSON
 }
 
@@ -47,10 +48,19 @@ async def on_kafka(parent, args, context, info):
         loop=asyncio.get_running_loop(),
         value_deserializer=debezium_deserializer
     )
-    await consumer.start()
     try:
-        async for msg in consumer:
-            yield msg.value
+        await consumer.start()
+        start_from = args.get('from', int(time.time())) * 1000
+        partitions = consumer.assignment()
+        partition_times = {partition: start_from for partition in partitions}
+        partition_offsets = await consumer.offsets_for_times(partition_times)
+        for partition in partitions:
+            if partition in partition_offsets and partition_offsets[partition]:
+                consumer.seek(partition, partition_offsets[partition].offset)
+            async for msg in consumer:
+                yield msg.value
+    except Exception as e:
+        yield repr(e)
     finally:
         await consumer.stop()
 
@@ -64,35 +74,45 @@ async def on_topics(parent, args, context, info):
     )
     await consumer.start()
     topics = []
-    while True:
-        new_topics = [topic for topic in await consumer.topics()]
-        if topics != new_topics:
-            topics = new_topics
-            yield topics
-        await asyncio.sleep(10)
+    try:
+        while True:
+            new_topics = [topic for topic in await consumer.topics()]
+            if topics != new_topics:
+                topics = new_topics
+                yield topics
+            await asyncio.sleep(10)
+    except Exception as e:
+        yield repr(e)
+    finally:
+        await consumer.stop()
 
 
 @Subscription("Subscription.sample")
 async def on_sample(parent, args, context, info):
+    from secrets import token_urlsafe
     topic = args["topic"]
     consumer = AIOKafkaConsumer(
         topic,
-        group_id="kafka-graphql-bridge",
+        group_id="kafka-graphql-bridge" + token_urlsafe(16),
         bootstrap_servers=config.BOOTSTRAP_SERVERS,
         loop=asyncio.get_running_loop(),
         value_deserializer=debezium_deserializer
     )
     await consumer.start()
+    previous_offset = -1
     try:
-        partitions = consumer.assignment()
         while True:
+            partitions = consumer.assignment()
             end_offsets = await consumer.end_offsets(partitions)
             for partition, offset in end_offsets.items():
-                if offset:
+                if offset and previous_offset != offset:
                     consumer.seek(partition, max(0, offset-1))
                     sample = await consumer.getone()
-                    yield str(sample)
-            await asyncio.sleep(args.get("rate", 1)/1)
+                    previous_offset = offset
+                    yield sample.value
+            await asyncio.sleep(1/min(args["rate"], 1000))
+    except Exception as e:
+        yield repr(e)
     finally:
         await consumer.stop()
 
