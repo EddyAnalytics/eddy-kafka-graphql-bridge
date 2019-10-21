@@ -1,6 +1,6 @@
 ctypesgen
 uvicorn
-tartiflette-starlette
+tartiflette-starlette==0.5.2
 aiokafka
 sentry-asgi
 starlette-prometheus
