@@ -4,7 +4,7 @@ services:
     build:
       context: .
     ports:
-      - 8000:8000
+      - 8009:8000
     volumes:
       - ./:/usr/src/app
     restart: always
@@ -47,3 +47,29 @@ services:
      - CONFIG_STORAGE_TOPIC=my_connect_configs
      - OFFSET_STORAGE_TOPIC=my_connect_offsets
      - STATUS_STORAGE_TOPIC=my_connect_statuses
+  jobmanager:
+    image: flink:1.8
+    container_name: flink-master
+    expose:
+      - "6123"
+    ports:
+      - "6123:6123"
+      - "8089:8081"
+    command: jobmanager
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=jobmanager
+    volumes:
+      - ./flink-cli-conf:/flink-cli-conf
+  taskmanager:
+    image: flink:1.8
+    container_name: flink-worker-1
+    expose:
+      - "6121"
+      - "6122"
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    links:
+      - jobmanager
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=jobmanager
