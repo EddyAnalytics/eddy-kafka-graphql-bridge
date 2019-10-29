@@ -21,6 +21,11 @@ from config import *
 # instantiate the main webapp
 app = Starlette(debug=DEBUG)
 
+if DEBUG:
+    import logging
+    logging.basicConfig()
+    logging.getLogger().setLevel(logging.INFO)
+
 
 # enable permissive CORS
 # https://www.starlette.io/middleware/#corsmiddleware
