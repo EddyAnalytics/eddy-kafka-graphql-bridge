@@ -11,6 +11,7 @@
         "database.server.name": "mysql1",
         "database.whitelist": "inventory",
         "database.history.kafka.bootstrap.servers": "kafka:9092",
-        "database.history.kafka.topic": "schema-changes.inventory"
+        "database.history.kafka.topic": "schema-changes.inventory",
+        "tombstones.on.delete": false
     }
 }
