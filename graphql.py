@@ -2,7 +2,7 @@ import asyncio
 from aiokafka import AIOKafkaConsumer
 from tartiflette import Subscription, Scalar, Resolver
 from tartiflette_starlette import TartifletteApp, GraphiQL, Subscriptions
-from util import debezium_deserializer
+from util import debezium_deserializer, utf8_deserializer
 import config
 import time
 
@@ -17,12 +17,11 @@ type Query {
 
 type Subscription {
   kafka(topics: [String], from: Int): JSON
-  sample(topic: String!, rate: Float): JSON
+  sample(topic: String!, rate: Float): String
   topics: JSON
 }
 
 """
-
 
 # define graphql Scalar for json
 @Scalar("JSON")
@@ -96,7 +95,7 @@ async def on_sample(parent, args, context, info):
         group_id="kafka-graphql-bridge" + token_urlsafe(16),
         bootstrap_servers=config.BOOTSTRAP_SERVERS,
         loop=asyncio.get_running_loop(),
-        value_deserializer=debezium_deserializer
+        value_deserializer=utf8_deserializer
     )
     await consumer.start()
     previous_offset = -1
