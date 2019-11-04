@@ -1,0 +1,24 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+ctypesgen = "*"
+uvicorn = "*"
+
+# tartiflette-starlette started using tartiflette 1.0
+# from 0.6, this broke the app so it is pinned to 0.5.2
+# see: https://github.com/tartiflette/tartiflette-asgi/blob/master/CHANGELOG.md
+tartiflette-starlette = "==0.5.2"
+
+aiokafka = "*"
+sentry-asgi = "*"
+starlette-prometheus = "*"
+starlette-jwt = "*"
+PyJWT = {extras = ["crypto"],version = "*"}
+
+[requires]
+python_version = "3.7"

@@ -1,0 +1,14 @@
+.git
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+.env
+.gitignore
+.dockerignore
+.gitlab-ci.yml
+.pre-commit-config.yaml
+requirements-dev.txt
+Dockerfile
+README.md

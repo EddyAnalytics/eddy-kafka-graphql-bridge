@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 
 
@@ -11,4 +12,3 @@ JWT_KEY = os.environ.get("JWT_KEY", "sekrit")
 JWT_PREFIX = os.environ.get("JWT_PREFIX", "Bearer")
 JWT_USER_FIELD = os.environ.get("JWT_USER_FIELD", "username")
 DEBUG = os.environ.get("DEBUG", False) == "True"
-

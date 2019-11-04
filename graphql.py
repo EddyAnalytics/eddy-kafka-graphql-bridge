@@ -1,10 +1,18 @@
+# -*- coding: utf-8 -*-
 import asyncio
-from aiokafka import AIOKafkaConsumer
-from tartiflette import Subscription, Scalar, Resolver
-from tartiflette_starlette import TartifletteApp, GraphiQL, Subscriptions
-from util import debezium_deserializer, utf8_deserializer
-import config
 import time
+
+from aiokafka import AIOKafkaConsumer
+from tartiflette import Resolver
+from tartiflette import Scalar
+from tartiflette import Subscription
+from tartiflette_starlette import GraphiQL
+from tartiflette_starlette import Subscriptions
+from tartiflette_starlette import TartifletteApp
+
+import config
+from util import debezium_deserializer
+from util import utf8_deserializer
 
 
 # define the graphql sdl
@@ -42,14 +50,14 @@ class ScalarJSON:
 @Subscription("Subscription.kafka")
 async def on_kafka(parent, args, context, info):
     consumer = AIOKafkaConsumer(
-        *args['topics'],
+        *args["topics"],
         bootstrap_servers=config.BOOTSTRAP_SERVERS,
         loop=asyncio.get_running_loop(),
         value_deserializer=debezium_deserializer
     )
     try:
         await consumer.start()
-        start_from = args.get('from', int(time.time())) * 1000
+        start_from = args.get("from", int(time.time())) * 1000
         partitions = consumer.assignment()
         partition_times = {partition: start_from for partition in partitions}
         partition_offsets = await consumer.offsets_for_times(partition_times)
@@ -69,7 +77,7 @@ async def on_topics(parent, args, context, info):
     consumer = AIOKafkaConsumer(
         bootstrap_servers=config.BOOTSTRAP_SERVERS,
         loop=asyncio.get_running_loop(),
-        value_deserializer=debezium_deserializer
+        value_deserializer=debezium_deserializer,
     )
     await consumer.start()
     topics = []
@@ -89,13 +97,14 @@ async def on_topics(parent, args, context, info):
 @Subscription("Subscription.sample")
 async def on_sample(parent, args, context, info):
     from secrets import token_urlsafe
+
     topic = args["topic"]
     consumer = AIOKafkaConsumer(
         topic,
         group_id="kafka-graphql-bridge" + token_urlsafe(16),
         bootstrap_servers=config.BOOTSTRAP_SERVERS,
         loop=asyncio.get_running_loop(),
-        value_deserializer=utf8_deserializer
+        value_deserializer=utf8_deserializer,
     )
     await consumer.start()
     previous_offset = -1
@@ -105,15 +114,16 @@ async def on_sample(parent, args, context, info):
             end_offsets = await consumer.end_offsets(partitions)
             for partition, offset in end_offsets.items():
                 if offset and previous_offset != offset:
-                    consumer.seek(partition, max(0, offset-1))
+                    consumer.seek(partition, max(0, offset - 1))
                     sample = await consumer.getone()
                     previous_offset = offset
                     yield sample.value
-            await asyncio.sleep(1/min(args["rate"], 1000))
+            await asyncio.sleep(1 / min(args["rate"], 1000))
     except Exception as e:
         yield repr(e)
     finally:
         await consumer.stop()
+
 
 graphql_app = TartifletteApp(
     sdl=sdl,
@@ -124,5 +134,7 @@ graphql_app = TartifletteApp(
             kafka(topics: ["mysql1.inventory.customers"]),
         }
         """
-     ) if config.DEBUG else None,
+    )
+    if config.DEBUG
+    else None,
 )

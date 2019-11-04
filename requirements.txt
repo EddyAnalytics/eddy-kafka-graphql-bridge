@@ -1,8 +1,0 @@
-ctypesgen
-uvicorn
-tartiflette-starlette==0.5.2
-aiokafka
-sentry-asgi
-starlette-prometheus
-https://github.com/mauritsvdvijgh/starlette-jwt/archive/master.zip
-pyjwt[crypto]

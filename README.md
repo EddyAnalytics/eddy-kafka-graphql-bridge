@@ -26,7 +26,7 @@ https://www.starlette.io/#performance
 ## symmetric
 Make sure JWT_KEY is set to the key you want and JWT_ALGORITHM should be set to 'HS256' which is the default
 
-## assymetric
+## asymmetric
 generate an RSA key pair:
 ```
 # generate the private key
