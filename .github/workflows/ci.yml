@@ -20,5 +20,5 @@ jobs:
       - name: Release Version
         if: steps.check_tag.outputs.match == 'true'
         run: |
-          docker tag eddyanalytics/eddy-kafka-graphql-bridge:latest eddyanalytics/eddy-kafka-graphql-bridge:${{ github.ref }}
-          docker push eddyanalytics/eddy-kafka-graphql-bridge:${{ github.ref }}
+          docker tag eddyanalytics/eddy-kafka-graphql-bridge:latest eddyanalytics/eddy-kafka-graphql-bridge:${GITHUB_REF##*/}
+          docker push eddyanalytics/eddy-kafka-graphql-bridge:${GITHUB_REF##*/}
