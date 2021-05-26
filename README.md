@@ -1,4 +1,9 @@
 # Start the topology as defined in http://debezium.io/docs/tutorial/
+
+```bash
+docker network create eddy
+```
+
 docker-compose up
 
 # Start MySQL connector
